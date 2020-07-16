@@ -1,6 +1,6 @@
 # Collage
 
-Creates a collage from a collection of images.
+Creates a collage from a collection of images. Automatically rotates images based on EXIF data.
 
 ## Usage:
 ```
