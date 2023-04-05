@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ Collage
 
@@ -144,9 +145,9 @@ def make_collage(images, width, init_height):
                 # otherwise use `thumbnail` because it's faster
                 k = (init_height / coef) / img.size[1]
                 if k > 1:
-                    img = img.resize((int(img.size[0] * k), int(img.size[1] * k)), Image.ANTIALIAS)
+                    img = img.resize((int(img.size[0] * k), int(img.size[1] * k)), Image.LANCZOS)
                 else:
-                    img.thumbnail((int(width / coef), int(init_height / coef)), Image.ANTIALIAS)
+                    img.thumbnail((int(width / coef), int(init_height / coef)), Image.LANCZOS)
     
                 if collage_image:
                     collage_image.paste(img, (int(x), int(y)))
@@ -168,22 +169,23 @@ if __name__ == "__main__":
 
     # prepare argument parser
     parse = argparse.ArgumentParser(description='Photo collage maker')
-    parse.add_argument('-f', '--folder', dest='folder', help='folder with images (*.jpg, *.jpeg, *.png)', default='.')
-    parse.add_argument('-o', '--output', dest='output', help='output collage image filename', default='collage.png')
-    parse.add_argument('-w', '--width', dest='width', type=int, help='resulting collage image width')
-    parse.add_argument('-i', '--init_height', dest='init_height', type=int, help='initial height for resize the images')
-    parse.add_argument('-s', '--shuffle', action='store_true', dest='shuffle', help='enable images shuffle')
+    parse.add_argument('-f', '--folder', dest='image_folder', help='folder with images (*.jpg, *.jpeg, *.png)', default='.')
+    parse.add_argument('-o', '--output', dest='output', help='output collage image filename', default='collage.jpg')
+    parse.add_argument('-w', '--collage_width', dest='collage_width', type=int, help='collage image width (px)')
+    parse.add_argument('-i', '--image_height', dest='image_height', type=int, help='individual image height (px)')
+    parse.add_argument('-s', '--shuffle', action='store_true', dest='shuffle', help='shuffle images')
+    parse.add_argument('-g', '--greyscale', action='store_true', dest='greyscale', help='greyscale')
 
     args = parse.parse_args()
-    if not args.width or not args.init_height:
+    if not args.collage_width or not args.image_height:
         parse.print_help()
         exit(1)
 
     # get images
-    files = [os.path.join(args.folder, fn) for fn in os.listdir(args.folder)]
+    files = [os.path.join(args.image_folder, fn) for fn in os.listdir(args.image_folder)]
     img_list = [fn for fn in files if os.path.splitext(fn)[1].lower() in ('.jpg', '.jpeg', '.png')]
     if not img_list:
-        print('No images for making collage! Please select other directory with images!')
+        print('No images for making collage! Please select another folder with images!')
         exit(1)
 
     # shuffle images if needed
@@ -192,14 +194,15 @@ if __name__ == "__main__":
 
     # make collage
     print('Making collage...')
-    collage = make_collage(img_list, args.width, args.init_height)
+    collage = make_collage(img_list, args.collage_width, args.image_height)
     if not collage:
         print('Failed to create collage!')
         exit(1)
 
     # convert to grayscale
-    collage_grayscale = collage.convert('L')
+    if args.greyscale:
+        collage = collage.convert('L')
     
     # save collage
-    collage_grayscale.save(args.output)
-    print('Collage is ready!')
+    collage.save(args.output)
+    print('Collage complete!')
